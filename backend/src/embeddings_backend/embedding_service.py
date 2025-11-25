@@ -6,16 +6,18 @@ from typing import List
 class EmbeddingService:
     _instance = None
     _model = None
+    _model_name = None
 
-    def __new__(cls):
+    def __new__(cls, model_name=None):
         if cls._instance is None:
             cls._instance = super(EmbeddingService, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self):
-        if self._model is None:
-            print("Loading sentence transformer model...")
-            self._model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    def __init__(self, model_name=None):
+        if self._model is None and model_name is not None:
+            print(f"Loading sentence transformer model: {model_name}...")
+            self._model = SentenceTransformer(model_name)
+            self._model_name = model_name
             print("Model loaded successfully!")
 
     def encode(self, text: str) -> np.ndarray:

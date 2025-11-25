@@ -25,6 +25,7 @@ An interactive web application for computing and visualizing word embeddings usi
 
 ### Backend
 - **Framework**: FastAPI
+- **Package Manager**: UV (modern Python package manager)
 - **Model**: sentence-transformers/all-MiniLM-L6-v2 (384-dim embeddings)
 - **Dimensionality Reduction**: UMAP
 - **Storage**: In-memory (no database required)
@@ -129,10 +130,12 @@ Response:
 
 ### Running Backend Locally
 
+The backend is now a UV-managed Python package:
+
 ```bash
 cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
+uv sync  # Install dependencies
+MODEL_NAME="sentence-transformers/all-MiniLM-L6-v2" uv run uvicorn embeddings_backend.main:app --reload
 ```
 
 Backend will be available at `http://localhost:8000`
@@ -154,17 +157,21 @@ Frontend will be available at `http://localhost:8080`
 
 ```
 visualize-embeddings/
-├── backend/
-│   ├── main.py                 # FastAPI app and endpoints
-│   ├── embedding_service.py    # Transformer model wrapper
-│   ├── embedding_store.py      # In-memory storage
-│   ├── requirements.txt        # Python dependencies
+├── backend/                     # UV-managed Python package
+│   ├── src/
+│   │   └── embeddings_backend/
+│   │       ├── __init__.py
+│   │       ├── main.py          # FastAPI app and endpoints
+│   │       ├── embedding_service.py  # Transformer model wrapper
+│   │       └── embedding_store.py    # In-memory storage
+│   ├── pyproject.toml           # UV package configuration
+│   ├── uv.lock                  # Locked dependencies
 │   └── Dockerfile
 ├── frontend/
-│   ├── index.html              # UI layout and styling
-│   ├── app.js                  # Frontend logic and API calls
+│   ├── index.html               # UI layout and styling
+│   ├── app.js                   # Frontend logic and API calls
 │   └── Dockerfile
-├── docker-compose.yml          # Container orchestration
+├── docker-compose.yml           # Container orchestration
 └── README.md
 ```
 

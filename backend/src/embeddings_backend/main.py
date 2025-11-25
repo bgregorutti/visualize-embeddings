@@ -1,11 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import os
 from pydantic import BaseModel
 from typing import List
+
 import numpy as np
 import umap
-from embedding_service import EmbeddingService
-from embedding_store import EmbeddingStore
+
+from .embedding_service import EmbeddingService
+from .embedding_store import EmbeddingStore
 
 app = FastAPI(title="Word Embeddings Visualizer API")
 
@@ -17,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-embedding_service = EmbeddingService()
+embedding_service = EmbeddingService(model_name=os.environ["MODEL_NAME"])
 embedding_store = EmbeddingStore()
 
 
