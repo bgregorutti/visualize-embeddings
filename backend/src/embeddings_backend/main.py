@@ -5,10 +5,10 @@ from pydantic import BaseModel
 from typing import List
 
 import numpy as np
-import umap
 
 from .embedding_service import EmbeddingService
 from .embedding_store import EmbeddingStore
+from .dimensionality_reduction import DimensionalityReduction
 
 app = FastAPI(title="Word Embeddings Visualizer API")
 
@@ -22,6 +22,7 @@ app.add_middleware(
 
 embedding_service = EmbeddingService(model_name=os.environ["MODEL_NAME"])
 embedding_store = EmbeddingStore()
+dim_reduction = DimensionalityReduction(method=os.environ.get("DIMENSIONALITY_REDUCTION", "umap"))
 
 
 class TextInput(BaseModel):
@@ -76,14 +77,7 @@ async def get_all_embeddings():
         return EmbeddingsResponse(count=0, embeddings=[])
 
     embeddings_matrix = np.array([entry.embedding for entry in entries])
-
-    if len(entries) == 1:
-        coords_2d = np.array([[0.0, 0.0]])
-    elif len(entries) == 2:
-        coords_2d = np.array([[0.0, 0.0], [1.0, 0.0]])
-    else:
-        reducer = umap.UMAP(n_components=2, random_state=42, n_neighbors=min(15, len(entries)-1))
-        coords_2d = reducer.fit_transform(embeddings_matrix)
+    coords_2d = dim_reduction.reduce(embeddings_matrix, n_components=2)
 
     embedding_points = []
     for entry, coords in zip(entries, coords_2d):
@@ -99,3 +93,9 @@ async def get_all_embeddings():
         count=len(entries),
         embeddings=embedding_points
     )
+
+
+@app.delete("/embeddings")
+async def clear_embeddings():
+    embedding_store.clear()
+    return {"status": "success", "message": "All embeddings cleared"}

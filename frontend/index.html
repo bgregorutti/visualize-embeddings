@@ -119,6 +119,14 @@
             transform: none;
         }
 
+        button.reset-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        button.reset-btn:hover {
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.4);
+        }
+
         .embedding-display {
             max-height: 200px;
             overflow-y: auto;
@@ -203,7 +211,10 @@
 
             <div class="right-panel">
                 <div class="section" style="flex: 1;">
-                    <h2 class="section-title">3. 2D Visualization (UMAP)</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h2 class="section-title" style="margin-bottom: 0;">3. 2D Visualization</h2>
+                        <button id="resetBtn" class="reset-btn">Reset All Data</button>
+                    </div>
                     <div class="plot-container">
                         <canvas id="embeddingChart"></canvas>
                     </div>

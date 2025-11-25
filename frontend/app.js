@@ -4,6 +4,7 @@ let chart = null;
 
 const textInput = document.getElementById('textInput');
 const submitBtn = document.getElementById('submitBtn');
+const resetBtn = document.getElementById('resetBtn');
 const statusDiv = document.getElementById('status');
 const embeddingDisplay = document.getElementById('embeddingDisplay');
 
@@ -172,7 +173,42 @@ function showStatus(message, type = 'info') {
     }
 }
 
+async function resetData() {
+    if (!confirm('Are you sure you want to clear all embeddings? This cannot be undone.')) {
+        return;
+    }
+
+    resetBtn.disabled = true;
+    showStatus('Clearing all data...', 'loading');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/embeddings`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to clear embeddings');
+        }
+
+        embeddingDisplay.textContent = '';
+
+        if (chart) {
+            chart.destroy();
+            chart = null;
+        }
+
+        showStatus('All data cleared successfully!', 'success');
+
+    } catch (error) {
+        showStatus(`Error: ${error.message}`, 'error');
+        console.error('Error:', error);
+    } finally {
+        resetBtn.disabled = false;
+    }
+}
+
 submitBtn.addEventListener('click', submitText);
+resetBtn.addEventListener('click', resetData);
 
 textInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
