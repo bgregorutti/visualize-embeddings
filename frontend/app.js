@@ -51,7 +51,7 @@ async function submitText() {
 }
 
 function displayEmbedding(embedding) {
-    const displayText = `[${embedding.slice(0, 10).map(v => v.toFixed(4)).join(', ')}... ] (${embedding.length} dimensions)`;
+    const displayText = `[${embedding.slice(0, 30).map(v => v.toFixed(4)).join(', ')}... ] (${embedding.length} dimensions)`;
     embeddingDisplay.textContent = displayText;
 }
 
@@ -121,13 +121,13 @@ function updateChart(embeddings) {
                     position: 'bottom',
                     title: {
                         display: true,
-                        text: 'UMAP Dimension 1'
+                        text: 'Dimension 1'
                     }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'UMAP Dimension 2'
+                        text: 'Dimension 2'
                     }
                 }
             }
