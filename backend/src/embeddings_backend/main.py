@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from pathlib import Path
 from pydantic import BaseModel
 from typing import List
 
@@ -21,9 +22,60 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize services
 embedding_service = EmbeddingService(model_name=os.environ["MODEL_NAME"])
 embedding_store = EmbeddingStore()
 dim_reduction = DimensionalityReduction(method=os.environ.get("DIMENSIONALITY_REDUCTION", "umap"))
+logger.info(f"Using '{dim_reduction.method}' dimensionality reduction")
+
+
+def load_training_words(file_path: str) -> List[str]:
+    """Load training words from text file (semicolon-separated)."""
+    path = Path(file_path)
+    if not path.exists():
+        logger.warning(f"Training file not found: {file_path}")
+        return []
+
+    with open(path, 'r') as f:
+        content = f.read().strip()
+
+    # Parse semicolon-separated words
+    words = [w.strip() for w in content.split(';') if w.strip()]
+    logger.info(f"Loaded {len(words)} training words from {file_path}")
+    return words
+
+
+def pretrain_dimensionality_reduction():
+    """
+    Pre-train the dimensionality reduction model using words from text.txt.
+    This ensures that all subsequently added words are projected into a fixed 2D space.
+    """
+    # Load training words from text.txt
+    training_file = Path(__file__).parent.parent.parent / "text.txt"
+    training_words = load_training_words(str(training_file))
+
+    if len(training_words) < 3:
+        logger.warning("Not enough training words to pre-train reducer. Need at least 3 words.")
+        return
+
+    # Compute embeddings for training words
+    logger.info(f"Computing embeddings for {len(training_words)} training words...")
+    training_embeddings = embedding_service.encode_batch(training_words)
+
+    # Fit the dimensionality reduction model
+    logger.info(f"Fitting {dim_reduction.method.upper()} on training embeddings...")
+    dim_reduction.fit(training_embeddings, n_components=2)
+    logger.info(f"Dimensionality reduction pre-trained successfully!")
+
+    # OPTIONAL: Uncomment the following lines to add training words to the plot
+    # This will pre-populate the visualization with the training words
+    # for word, embedding in zip(training_words, training_embeddings):
+    #     embedding_store.add(word, embedding)
+    # logger.info(f"Added {len(training_words)} training words to the embedding store")
+
+
+# Pre-train the reducer at startup
+pretrain_dimensionality_reduction()
 logger.info(f"Using '{dim_reduction.method}' dimensionality reduction")
 
 
@@ -97,7 +149,7 @@ async def get_all_embeddings():
         return EmbeddingsResponse(count=0, embeddings=[])
 
     embeddings_matrix = np.array([entry.embedding for entry in entries])
-    coords_2d = dim_reduction.reduce(embeddings_matrix, n_components=2)
+    coords_2d = dim_reduction.transform(embeddings_matrix)
 
     embedding_points = []
     for entry, coords in zip(entries, coords_2d):
