@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import List
 
 import numpy as np
+from loguru import logger
 
 from .embedding_service import EmbeddingService
 from .embedding_store import EmbeddingStore
@@ -23,6 +24,7 @@ app.add_middleware(
 embedding_service = EmbeddingService(model_name=os.environ["MODEL_NAME"])
 embedding_store = EmbeddingStore()
 dim_reduction = DimensionalityReduction(method=os.environ.get("DIMENSIONALITY_REDUCTION", "umap"))
+logger.info(f"Using '{dim_reduction.method}' dimensionality reduction")
 
 
 class TextInput(BaseModel):
@@ -58,14 +60,32 @@ async def create_embedding(input_data: TextInput):
     if not input_data.text or not input_data.text.strip():
         raise HTTPException(status_code=400, detail="Text input cannot be empty")
 
-    text = input_data.text.strip()
-    embedding = embedding_service.encode(text)
-    entry_id = embedding_store.add(text, embedding)
+    # Split by semicolon and clean up whitespace
+    texts = [t.strip() for t in input_data.text.strip().split(";") if t.strip()]
+
+    if len(texts) == 0:
+        raise HTTPException(status_code=400, detail="No valid text found")
+
+    # Compute embeddings (batch if multiple, single if one)
+    if len(texts) == 1:
+        embeddings = [embedding_service.encode(texts[0])]
+    else:
+        embeddings = embedding_service.encode_batch(texts)
+
+    # Add each word as a separate entry
+    entry_ids = []
+    for text, embedding in zip(texts, embeddings):
+        entry_id = embedding_store.add(text, embedding)
+        entry_ids.append(entry_id)
+
+    # Return info about the first word (for UI display)
+    # but include count of total words added in the id field
+    response_text = texts[0] if len(texts) == 1 else f"{texts[0]} (+ {len(texts)-1} more)"
 
     return EmbedResponse(
-        id=entry_id,
-        text=text,
-        embedding=embedding.tolist()
+        id=entry_ids[0],
+        text=response_text,
+        embedding=embeddings[0].tolist()
     )
 
 
