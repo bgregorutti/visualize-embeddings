@@ -140,8 +140,8 @@ function updateChart(embeddings) {
                 x: {
                     type: 'linear',
                     position: 'bottom',
-                    min: -0.5,
-                    max: 0.8,
+                    min: -0.4,
+                    max: 0.6,
                     title: {
                         display: true,
                         text: 'Dimension 1'
