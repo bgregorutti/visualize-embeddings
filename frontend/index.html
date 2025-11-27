@@ -178,6 +178,54 @@
             color: #0d6efd;
         }
 
+        .similarity-display {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #667eea;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .similarity-display.active {
+            display: block;
+        }
+
+        .similarity-display h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .similarity-words {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .similarity-words strong {
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .similarity-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 15px 0;
+        }
+
+        .clear-selection-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+
+        .clear-selection-btn:hover {
+            box-shadow: 0 10px 20px rgba(108, 117, 125, 0.4);
+        }
+
         @media (max-width: 968px) {
             .content {
                 grid-template-columns: 1fr;
@@ -217,6 +265,16 @@
                     </div>
                     <div class="plot-container">
                         <canvas id="embeddingChart"></canvas>
+                    </div>
+                    <div id="similarityDisplay" class="similarity-display">
+                        <h3>Cosine Similarity</h3>
+                        <p class="similarity-words">
+                            <strong id="word1Display"></strong> vs <strong id="word2Display"></strong>
+                        </p>
+                        <div class="similarity-value">
+                            Similarity: <span id="similarityValue"></span>
+                        </div>
+                        <button id="clearSelectionBtn" class="clear-selection-btn">Clear Selection</button>
                     </div>
                 </div>
             </div>

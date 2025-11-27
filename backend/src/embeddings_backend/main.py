@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from pathlib import Path
-from pydantic import BaseModel
 from typing import List
 
 import numpy as np
@@ -11,6 +10,7 @@ from loguru import logger
 from .embedding_service import EmbeddingService
 from .embedding_store import EmbeddingStore
 from .dimensionality_reduction import DimensionalityReduction
+from .model import TextInput, EmbedResponse, EmbeddingPoint, EmbeddingsResponse, SimilarityResponse
 
 app = FastAPI(title="Word Embeddings Visualizer API")
 
@@ -77,29 +77,6 @@ def pretrain_dimensionality_reduction():
 # Pre-train the reducer at startup
 pretrain_dimensionality_reduction()
 logger.info(f"Using '{dim_reduction.method}' dimensionality reduction")
-
-
-class TextInput(BaseModel):
-    text: str
-
-
-class EmbedResponse(BaseModel):
-    id: str
-    text: str
-    embedding: list
-
-
-class EmbeddingPoint(BaseModel):
-    id: str
-    text: str
-    x: float
-    y: float
-    embedding: list
-
-
-class EmbeddingsResponse(BaseModel):
-    count: int
-    embeddings: List[EmbeddingPoint]
 
 
 @app.get("/health")
@@ -169,8 +146,33 @@ async def get_all_embeddings():
         embeddings=embedding_points
     )
 
-
 @app.delete("/embeddings")
 async def clear_embeddings():
     embedding_store.clear()
     return {"status": "success", "message": "All embeddings cleared"}
+
+@app.get("/similarity", response_model=SimilarityResponse)
+async def similarity(id1, id2):
+    entry1 = embedding_store.get(id1)
+    entry2 = embedding_store.get(id2)
+
+    if not entry1:
+        raise HTTPException(status_code=404, detail=f"{id1} found")
+
+    if not entry2:
+        raise HTTPException(status_code=404, detail=f"{id2} found")
+
+    vector1 = entry1.embedding
+    vector2 = entry2.embedding
+
+    norm = lambda vector: np.sqrt(np.dot(vector, vector))
+    cosine = np.round(np.dot(vector1, vector2) / (norm(vector1) * norm(vector2)), 4)
+    #TODO edge cases
+
+    return SimilarityResponse(
+        word1=entry1.text,
+        word2=entry2.text,
+        cosine_similarity=cosine,
+        id1=id1,
+        id2=id2
+    )

@@ -29,6 +29,12 @@ class EmbeddingStore:
     def get_all(self) -> List[EmbeddingEntry]:
         return self.entries
 
+    def get(self, id):
+        for entry in self.entries:
+            if entry.id == id:
+                return entry
+        return None
+
     def clear(self):
         self.entries = []
 
