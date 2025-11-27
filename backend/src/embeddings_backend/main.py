@@ -153,13 +153,16 @@ async def get_all_embeddings():
 
     embedding_points = []
     for entry, coords in zip(entries, coords_2d):
-        embedding_points.append(EmbeddingPoint(
-            id=entry.id,
-            text=entry.text,
-            x=float(coords[0]),
-            y=float(coords[1]),
-            embedding=entry.embedding.tolist()
-        ))
+        # Get text in embedding_points
+        current = [item.text for item in embedding_points]
+        if entry.text not in current:
+            embedding_points.append(EmbeddingPoint(
+                id=entry.id,
+                text=entry.text,
+                x=float(coords[0]),
+                y=float(coords[1]),
+                embedding=entry.embedding.tolist()
+            ))
 
     return EmbeddingsResponse(
         count=len(entries),

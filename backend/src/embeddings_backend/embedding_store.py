@@ -34,3 +34,6 @@ class EmbeddingStore:
 
     def count(self) -> int:
         return len(self.entries)
+    
+    def __contains__(self, text):
+        return text in [item.text for item in self.get_all()]

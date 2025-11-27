@@ -100,6 +100,7 @@ function updateChart(embeddings) {
         type: 'scatter',
         data: chartData,
         options: {
+            animation: false,
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -119,12 +120,16 @@ function updateChart(embeddings) {
                 x: {
                     type: 'linear',
                     position: 'bottom',
+                    min: -0.5,
+                    max: 0.8,
                     title: {
                         display: true,
                         text: 'Dimension 1'
                     }
                 },
                 y: {
+                    min: -0.6,
+                    max: 0.8,
                     title: {
                         display: true,
                         text: 'Dimension 2'
