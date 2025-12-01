@@ -141,7 +141,7 @@ function updateChart(embeddings) {
                     type: 'linear',
                     position: 'bottom',
                     min: -0.4,
-                    max: 0.6,
+                    max: 0.7,
                     title: {
                         display: true,
                         text: 'Dimension 1'
